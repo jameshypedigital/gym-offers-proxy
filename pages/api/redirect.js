@@ -20,14 +20,14 @@ export default async function handler(req, res) {
 =================================== */
 
 const utm = {
-  utm_source: query.utm_source || "facebook",
+  utm_source: query.utm_source || (query.gclid ? "google" : "facebook"),
   utm_medium: query.utm_medium || null,
   utm_campaign: query.utm_campaign || null,
   utm_adset: query.utm_adset || null,
   utm_ad: query.utm_ad || null,
   fbclid: query.fbclid || null,
   gclid: query.gclid || null,
-  landing_page: slug ? slug.toLowerCase() : "form"
+  landing_page: slug
 };
 
     /* ===================================
