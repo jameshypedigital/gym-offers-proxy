@@ -76,7 +76,7 @@ const utm = {
        SEND TO N8N
     =================================== */
 
-    await fetch("https://YOUR-N8N-WEBHOOK", {
+    await fetch("https://dashtraq.app.n8n.cloud/webhook-test/redirect-track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
