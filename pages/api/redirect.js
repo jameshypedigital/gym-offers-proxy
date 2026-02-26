@@ -14,16 +14,21 @@ export default async function handler(req, res) {
        (Works for Meta + Google)
     =================================== */
 
-    const utm = {
-      utm_source: query.utm_source || null,
-      utm_medium: query.utm_medium || null,
-      utm_campaign: query.utm_campaign || null,
-      utm_adset: query.utm_adset || null,
-      utm_ad: query.utm_ad || null,
-      fbclid: query.fbclid || null,
-      gclid: query.gclid || null,
-      landing_page: slug.toLowerCase()
-    };
+/* ===================================
+   NORMALIZE UTM PARAMETERS
+   Default utm_source = facebook
+=================================== */
+
+const utm = {
+  utm_source: query.utm_source || "facebook",
+  utm_medium: query.utm_medium || null,
+  utm_campaign: query.utm_campaign || null,
+  utm_adset: query.utm_adset || null,
+  utm_ad: query.utm_ad || null,
+  fbclid: query.fbclid || null,
+  gclid: query.gclid || null,
+  landing_page: slug ? slug.toLowerCase() : "form"
+};
 
     /* ===================================
        BUILD DESTINATION URL
