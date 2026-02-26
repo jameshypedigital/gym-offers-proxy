@@ -77,16 +77,15 @@ const utm = {
     =================================== */
 
     await fetch("https://dashtraq.app.n8n.cloud/webhook-test/redirect-track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        brand: "gym_offers",
-        location_id,
-        slug: slug.toLowerCase(),
-        utm,
-        timestamp: Date.now()
-      })
-    });
+        method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    club: location_id,   // IMPORTANT: keep this as club
+    slug: slug,
+    utm: utm,
+    timestamp: Date.now()
+  })
+});
 
     return res.redirect(302, finalUrl);
 
