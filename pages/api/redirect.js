@@ -11,24 +11,18 @@ export default async function handler(req, res) {
 
     /* ===================================
        NORMALIZE UTM PARAMETERS
-       (Works for Meta + Google)
     =================================== */
 
-/* ===================================
-   NORMALIZE UTM PARAMETERS
-   Default utm_source = facebook
-=================================== */
-
-const utm = {
-  utm_source: query.utm_source || (query.gclid ? "google" : "facebook"),
-  utm_medium: query.utm_medium || null,
-  utm_campaign: query.utm_campaign || null,
-  utm_adset: query.utm_adset || null,
-  utm_ad: query.utm_ad || null,
-  fbclid: query.fbclid || null,
-  gclid: query.gclid || null,
-  landing_page: slug
-};
+    const utm = {
+      utm_source: query.utm_source || (query.gclid ? "google" : "facebook"),
+      utm_medium: query.utm_medium || null,
+      utm_campaign: query.utm_campaign || null,
+      utm_adset: query.utm_adset || null,
+      utm_ad: query.utm_ad || null,
+      fbclid: query.fbclid || null,
+      gclid: query.gclid || null,
+      landing_page: slug
+    };
 
     /* ===================================
        BUILD DESTINATION URL
@@ -39,6 +33,11 @@ const utm = {
     // 🏋️ 8000 — Single Form
     if (location_id === "8000") {
       finalUrl = "https://forms.club-os.com/weblead/activelife";
+    }
+
+    // 🏋️ 8002 — Renew Performance Center (NEW)
+    else if (location_id === "8002") {
+      finalUrl = "https://renewperformancecenter.com/";
     }
 
     // 🏋️ 8003 — Rebirth Transformation
@@ -77,15 +76,15 @@ const utm = {
     =================================== */
 
     await fetch("https://dashtraq.app.n8n.cloud/webhook-test/redirect-track", {
-        method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    club: location_id,   // IMPORTANT: keep this as club
-    slug: slug,
-    utm: utm,
-    timestamp: Date.now()
-  })
-});
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        club: location_id,
+        slug: slug,
+        utm: utm,
+        timestamp: Date.now()
+      })
+    });
 
     return res.redirect(302, finalUrl);
 
