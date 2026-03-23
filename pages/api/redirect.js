@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
     // 🏋️ 8002 — Renew Performance Center (NEW)
     else if (location_id === "8002") {
-      finalUrl = "https://renewperformancecenter.com/";
+      finalUrl = "https://renewperformancecenter.com/pricing/";
     }
 
     // 🏋️ 8003 — Rebirth Transformation
