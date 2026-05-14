@@ -35,10 +35,28 @@ export default async function handler(req, res) {
       finalUrl = "https://forms.club-os.com/weblead/activelife";
     }
 
-    // 🏋️ 8002 — Renew Performance Center (NEW)
-    else if (location_id === "8002") {
-      finalUrl = "https://renewperformancecenter.com/pricing/";
-    }
+    // 🏋️ 8002 — Renew Performance Center
+else if (location_id === "8002") {
+
+  const allowedSlugs = [
+    "renew-lander-massage",
+    "renew-lander",
+    "renew-lander-daypass",
+    "renew-lander-redlight",
+    "renew-lander-flowpresso"
+  ];
+
+  const cleanSlug = slug.toLowerCase();
+
+  if (!allowedSlugs.includes(cleanSlug)) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid Renew landing page"
+    });
+  }
+
+  finalUrl = `https://renewperformancecenter.com/${cleanSlug}/`;
+}
 
     // 🏋️ 8003 — Rebirth Transformation
     else if (location_id === "8003") {
