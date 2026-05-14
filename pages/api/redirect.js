@@ -39,8 +39,9 @@ export default async function handler(req, res) {
 else if (location_id === "8002") {
 
   const allowedSlugs = [
-    "renew-lander-massage",
+    "pricing",
     "renew-lander",
+    "renew-lander-massage",
     "renew-lander-daypass",
     "renew-lander-redlight",
     "renew-lander-flowpresso"
