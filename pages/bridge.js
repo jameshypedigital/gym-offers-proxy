@@ -6,11 +6,8 @@ export async function getServerSideProps(context) {
   try {
     const {
       lpurl,
-      slug,
       location_id,
-      offer,
-      club,
-
+      slug,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -18,15 +15,14 @@ export async function getServerSideProps(context) {
       utm_term,
       utm_adgroup,
       utm_adid,
-
       gclid,
-
       ...otherParams
     } = context.query;
 
-    // -----------------------------------------
+    // ===================================
     // CLEAN QUERY VALUES
-    // -----------------------------------------
+    // ===================================
+
     const cleanValue = (value) => {
       if (Array.isArray(value)) {
         return value[0] || null;
@@ -44,139 +40,65 @@ export async function getServerSideProps(context) {
     };
 
     const finalLpurl = cleanValue(lpurl);
-    const finalSlug = cleanValue(slug);
     const finalLocationId = cleanValue(location_id);
-    const finalOffer = cleanValue(offer);
-    const finalClub = cleanValue(club);
+    const finalSlug = cleanValue(slug);
 
-    // =====================================================
-    // GOOGLE MODE
-    // =====================================================
+    // ===================================
+    // REQUIRE GOOGLE TRANSPARENT URL
+    // ===================================
 
-    if (finalLpurl) {
-
-      // Validate Google's final destination
-      try {
-        const destination = new URL(finalLpurl);
-
-        if (
-          destination.protocol !== "https:" &&
-          destination.protocol !== "http:"
-        ) {
-          throw new Error("Invalid lpurl protocol");
-        }
-
-      } catch (err) {
-
-        console.error("Invalid lpurl:", finalLpurl);
-
-        return {
-          notFound: true
-        };
-      }
-
-      // -----------------------------------------
-      // BUILD GOOGLE TRACKING PAYLOAD
-      // -----------------------------------------
-
-      const trackingPayload = {
-        source: "google",
-
-        slug: finalSlug,
-        landing_page: finalSlug,
-
-        location_id: finalLocationId,
-
-        offer: finalOffer,
-        club: finalClub,
-
-        lpurl: finalLpurl,
-
-        utm_source: cleanValue(utm_source),
-        utm_medium: cleanValue(utm_medium),
-        utm_campaign: cleanValue(utm_campaign),
-        utm_content: cleanValue(utm_content),
-        utm_term: cleanValue(utm_term),
-        utm_adgroup: cleanValue(utm_adgroup),
-        utm_adid: cleanValue(utm_adid),
-
-        gclid: cleanValue(gclid),
-
-        other_params: otherParams,
-
-        timestamp: Date.now()
-      };
-
-      // -----------------------------------------
-      // SEND TO N8N
-      // -----------------------------------------
-
-      try {
-
-        const response = await fetch(
-          "https://dashtraq.app.n8n.cloud/webhook/redirect-track",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(trackingPayload)
-          }
-        );
-
-        if (!response.ok) {
-          console.error(
-            "n8n returned status:",
-            response.status
-          );
-        }
-
-      } catch (trackingError) {
-
-        // Tracking failure should NEVER block the customer
-        console.error(
-          "Google tracking failed:",
-          trackingError
-        );
-      }
-
-      // -----------------------------------------
-      // GOOGLE TRANSPARENT REDIRECT
-      // -----------------------------------------
-
-      return {
-        redirect: {
-          destination: finalLpurl,
-          permanent: false
-        }
-      };
-    }
-
-    // =====================================================
-    // FALLBACK MODE
-    // Allows /bridge to work without Google lpurl
-    // =====================================================
-
-    const locationId = finalClub || finalLocationId;
-
-    if (!finalSlug || !locationId) {
+    if (!finalLpurl) {
+      console.error("Missing lpurl");
 
       return {
         notFound: true
       };
     }
 
-    const cleanSlug = finalSlug
-      .trim()
-      .toLowerCase();
-
-    // -----------------------------------------
-    // TRACK FALLBACK
-    // -----------------------------------------
+    // ===================================
+    // VALIDATE LPURL
+    // ===================================
 
     try {
+      const destination = new URL(finalLpurl);
 
-      await fetch(
+      if (
+        destination.protocol !== "https:" &&
+        destination.protocol !== "http:"
+      ) {
+        throw new Error("Invalid lpurl protocol");
+      }
+    } catch (err) {
+      console.error("Invalid lpurl:", finalLpurl);
+
+      return {
+        notFound: true
+      };
+    }
+
+    // ===================================
+    // NORMALIZE GOOGLE ATTRIBUTION
+    // ===================================
+
+    const utm = {
+      utm_source: cleanValue(utm_source) || "google",
+      utm_medium: cleanValue(utm_medium) || "cpc",
+      utm_campaign: cleanValue(utm_campaign),
+      utm_content: cleanValue(utm_content),
+      utm_term: cleanValue(utm_term),
+      utm_adgroup: cleanValue(utm_adgroup),
+      utm_adid: cleanValue(utm_adid),
+      gclid: cleanValue(gclid),
+      landing_page: finalSlug
+    };
+
+    // ===================================
+    // SEND TO N8N
+    // Same basic payload structure as redirect.js
+    // ===================================
+
+    try {
+      const response = await fetch(
         "https://dashtraq.app.n8n.cloud/webhook/redirect-track",
         {
           method: "POST",
@@ -184,60 +106,50 @@ export async function getServerSideProps(context) {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            source: "gym-offers-bridge",
+            club: finalLocationId,
+            slug: finalSlug,
+            utm: utm,
 
-            slug: cleanSlug,
-            landing_page: cleanSlug,
-
-            location_id: locationId,
-            club: locationId,
-
-            offer: finalOffer,
-
-            utm_source: cleanValue(utm_source),
-            utm_medium: cleanValue(utm_medium),
-            utm_campaign: cleanValue(utm_campaign),
-            utm_content: cleanValue(utm_content),
-            utm_term: cleanValue(utm_term),
-            utm_adgroup: cleanValue(utm_adgroup),
-            utm_adid: cleanValue(utm_adid),
-
-            gclid: cleanValue(gclid),
+            // Google transparency information
+            lpurl: finalLpurl,
+            source: "google",
 
             other_params: otherParams,
-
             timestamp: Date.now()
           })
         }
       );
 
+      if (!response.ok) {
+        console.error(
+          "n8n tracking returned status:",
+          response.status
+        );
+      }
     } catch (trackingError) {
-
+      // Tracking failure should not prevent the redirect
       console.error(
-        "Fallback tracking failed:",
+        "Google tracking failed:",
         trackingError
       );
     }
 
-    // -----------------------------------------
-    // GYM-OFFERS FALLBACK DESTINATION
+    // ===================================
+    // GOOGLE TRANSPARENT REDIRECT
     //
-    // If you already have different slug routing
-    // in /api/redirect, we can duplicate that here.
-    // -----------------------------------------
-
-    const finalUrl =
-      `https://www.anytimefitness.com/offer/local/${cleanSlug}?club=${locationId}`;
+    // IMPORTANT:
+    // Do NOT construct destination from slug.
+    // lpurl is the authoritative destination.
+    // ===================================
 
     return {
       redirect: {
-        destination: finalUrl,
+        destination: finalLpurl,
         permanent: false
       }
     };
 
   } catch (err) {
-
     console.error("Bridge fatal error:", err);
 
     return {
