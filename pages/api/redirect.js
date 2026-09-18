@@ -41,7 +41,7 @@ else if (location_id === "8002") {
   const allowedSlugs = [
     "pricing",
     "renew-lander",
-    "trial-landing-page"
+    "trial-landing-page",
     "renew-lander-massage",
     "renew-lander-daypass",
     "renew-lander-redlight",
