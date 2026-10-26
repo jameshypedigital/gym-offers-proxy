@@ -45,6 +45,7 @@ else if (location_id === "8002") {
     "renew-lander-massage",
     "renew-lander-daypass",
     "renew-lander-redlight",
+    "renew-lander-contrast",
     "renew-lander-flowpresso"
   ];
 
